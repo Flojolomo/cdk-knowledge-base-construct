@@ -1,8 +1,11 @@
 import * as path from "path";
 import * as cdk from "aws-cdk-lib";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+
 import * as cr from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
+import { IVectorIndex } from "../knowledge-base/vector-index";
 import { LambdaFunction } from "../utils/lambda-function";
 import { OpenSearchCollection } from "./open-search-collection";
 
@@ -18,23 +21,27 @@ interface OpenSearchIndexProps {
  * with the dimension specified in {@link OpenSearchIndexProps.vectorDimension}. The name of the index is specified in
  * {@link OpenSearchIndexProps.indexName}.
  */
-export class OpenSearchIndex extends Construct {
+export class OpenSearchIndex extends Construct implements IVectorIndex {
   public readonly metadataField: string = "METADATA";
   public readonly textField: string = "TEXT_CHUNK";
   public readonly vectorField: string;
+  public readonly collection: OpenSearchCollection;
+  public readonly indexName: string;
+
 
   public constructor(
     scope: Construct,
     id: string,
     props: OpenSearchIndexProps,
   ) {
-    // TODO consider index name as id to force replacement
     super(
       scope,
       `${id}-${cdk.Names.uniqueId(props.collection)}-${props.indexName}-${props.vectorDimension}`,
     );
 
     this.vectorField = props.indexName;
+    this.collection = props.collection;
+    this.indexName = props.indexName;
 
     const { function: createIndexHandler } = new LambdaFunction(
       this,
@@ -73,5 +80,9 @@ export class OpenSearchIndex extends Construct {
     const grant = props.collection.grantReadWrite(createIndexHandler.role!);
 
     customResource.node.addDependency(grant);
+  }
+
+  public grantReadWrite(principal: iam.IPrincipal): iam.Grant {
+   return this.collection.grantReadWrite(principal);
   }
 }

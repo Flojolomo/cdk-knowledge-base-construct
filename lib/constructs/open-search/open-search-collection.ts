@@ -67,6 +67,10 @@ interface OpenSearchCollectionProps {
 export class OpenSearchCollection extends osServerless.CfnCollection {
   private readonly dataAccessPolicy: OpenSearchDataAccessPolicy;
 
+  public get collectionArn(): string {
+    return this.attrArn
+  }
+
   /**
    * @param scope
    * @param id

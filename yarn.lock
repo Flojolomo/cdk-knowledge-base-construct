@@ -104,6 +104,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-lambda-powertools/parser@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "@aws-lambda-powertools/parser@npm:2.7.0"
+  peerDependencies:
+    "@middy/core": 4.x || 5.x
+    zod: ">=3.x"
+  peerDependenciesMeta:
+    "@middy/core":
+      optional: true
+    zod:
+      optional: true
+  checksum: 10c0/e3397f772b3359790eb90a1dd166fd8588584a533ed17a78966813ed7811a1c8b6fdc2a326723dfdb2e952c2c609ea60ef1bb24bc9f03b272a07c70a37904e32
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/client-sso@npm:3.624.0":
   version: 3.624.0
   resolution: "@aws-sdk/client-sso@npm:3.624.0"
@@ -5284,6 +5299,7 @@ __metadata:
   dependencies:
     "@aws-lambda-powertools/commons": "npm:^2.7.0"
     "@aws-lambda-powertools/logger": "npm:^2.7.0"
+    "@aws-lambda-powertools/parser": "npm:^2.7.0"
     "@aws-sdk/credential-provider-node": "npm:^3.624.0"
     "@eslint/js": "npm:^9.8.0"
     "@opensearch-project/opensearch": "npm:^2.11.0"
@@ -5309,6 +5325,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:~5.5.3"
     typescript-eslint: "npm:^8.0.1"
+    zod: "npm:~3"
   bin:
     knowledge-base-construct: bin/knowledge-base-construct.js
   languageName: unknown
@@ -7174,5 +7191,12 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
+  languageName: node
+  linkType: hard
+
+"zod@npm:~3":
+  version: 3.23.8
+  resolution: "zod@npm:3.23.8"
+  checksum: 10c0/8f14c87d6b1b53c944c25ce7a28616896319d95bc46a9660fe441adc0ed0a81253b02b5abdaeffedbeb23bdd25a0bf1c29d2c12dd919aef6447652dd295e3e69
   languageName: node
   linkType: hard

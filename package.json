@@ -35,10 +35,12 @@
   "dependencies": {
     "@aws-lambda-powertools/commons": "^2.7.0",
     "@aws-lambda-powertools/logger": "^2.7.0",
+    "@aws-lambda-powertools/parser": "^2.7.0",
     "@aws-sdk/credential-provider-node": "^3.624.0",
     "@opensearch-project/opensearch": "^2.11.0",
     "aws-cdk-lib": "2.151.0",
     "constructs": "^10.0.0",
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "zod": "~3"
   }
 }
