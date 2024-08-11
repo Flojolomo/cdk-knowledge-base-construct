@@ -10,13 +10,14 @@ import {
 
 export const handler = async (
   event: CloudFormationCustomResourceEvent,
-  context: Context,
+  context: Context
 ): Promise<CloudFormationCustomResourceResponse> => {
-  console.log("#####", event);
-
   const ResourceProperties =
     event.ResourceProperties as unknown as StartIngestionJobEvent;
-  await startIngestionJobHandler(ResourceProperties, context);
+
+  if (event.RequestType === "Create") {
+    await startIngestionJobHandler(ResourceProperties, context);
+  }
 
   return {
     Status: "SUCCESS",

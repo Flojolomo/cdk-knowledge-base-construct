@@ -1,4 +1,5 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons/types";
+import { Logger } from "@aws-lambda-powertools/logger";
 import { parser } from "@aws-lambda-powertools/parser";
 import { BedrockAgent } from "@aws-sdk/client-bedrock-agent";
 import { Context } from "aws-lambda";
@@ -11,20 +12,20 @@ const startIngestionJobEventSchema = z.object({
   dataSourceId: z.string(),
 });
 
+const logger = new Logger({ serviceName: "start-sync" });
+
 export type StartIngestionJobEvent = z.infer<
   typeof startIngestionJobEventSchema
 >;
 
 class Lambda implements LambdaInterface {
   @parser({ schema: startIngestionJobEventSchema })
+  @logger.injectLambdaContext({ logEvent: true })
   public async handler(
     event: StartIngestionJobEvent,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _: Context
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
-    console.log("Received event: ", JSON.stringify(event, null, 2));
-
     await bedrockClient.startIngestionJob({
       knowledgeBaseId: event.knowledgeBaseId,
       dataSourceId: event.dataSourceId,

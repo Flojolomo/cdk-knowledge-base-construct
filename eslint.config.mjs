@@ -1,13 +1,19 @@
-import pluginJs from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
+import pluginJs from "@eslint/js";
 
 import importPlugin from "eslint-plugin-import";
 import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
 export default [
-  eslintConfigPrettier,
-  { files: ["**/*.{js,mjs,cjs,ts}"] },
+  {
+    ignores: [
+      ".yarn/**/*",
+      "**/node_modules/**/*",
+      "**/cdk.out/**/*",
+      "**/dist/**/*",
+    ],
+  },
   {
     languageOptions: {
       globals: {
@@ -15,9 +21,16 @@ export default [
       },
     },
   },
+  eslintConfigPrettier,
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ["**/*.ts"],
+    languageOptions: {
+      globals: {
+        module: "readonly",
+      },
+    },
     plugins: {
       "unused-imports": unusedImports,
       import: importPlugin,

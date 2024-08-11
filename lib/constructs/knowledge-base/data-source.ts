@@ -1,4 +1,4 @@
-import * as path from "path"
+import * as path from "path";
 import * as cdk from "aws-cdk-lib";
 import * as bedrock from "aws-cdk-lib/aws-bedrock";
 import * as events from "aws-cdk-lib/aws-events";
@@ -41,7 +41,7 @@ export interface KnowledgeBaseDataSourceProps {
 
 export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
   public get dataSourceId(): string {
-    return this.attrDataSourceId
+    return this.attrDataSourceId;
   }
 
   public readonly bucket: s3.IBucket;
@@ -51,7 +51,7 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
   public constructor(
     scope: Construct,
     id: string,
-    props: KnowledgeBaseDataSourceProps,
+    props: KnowledgeBaseDataSourceProps
   ) {
     super(scope, id, {
       description: props.description,
@@ -82,10 +82,8 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
       "start-ingestion-job-after-creation-data-source",
       {
         functionProps: {
-          entry: path.join(
-            __dirname,
-            "start-ingestion-job/custom-resource.ts"
-          ),
+          entry: path.join(__dirname, "start-ingestion-job/custom-resource.ts"),
+          timeout: cdk.Duration.minutes(5),
         },
       }
     );
@@ -108,7 +106,6 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
       }
     );
 
-
     new cdk.CustomResource(this, `sync-after-creation-custom-resource`, {
       serviceToken: customResourceProvider!.serviceToken,
       properties: {
@@ -118,18 +115,13 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
     });
   }
 
-  public syncOnSchedule(
-    schedule: events.Schedule,
-  ) {
+  public syncOnSchedule(schedule: events.Schedule) {
     const { function: createFunctionToStartIngestionJob } = new LambdaFunction(
       this,
       "start-ingestion-job-data-source",
       {
         functionProps: {
-          entry: path.join(
-            __dirname,
-            "start-ingestion-job/start-sync.ts"
-          ),
+          entry: path.join(__dirname, "start-ingestion-job/start-sync.ts"),
         },
       }
     );
@@ -153,7 +145,7 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
           knowledgeBaseId: this.knowledgeBase.attrKnowledgeBaseId,
           dataSourceId: this.dataSourceId,
         }),
-      }),
+      })
     );
   }
 }
