@@ -17,6 +17,8 @@ This repository aims to provide reusable constructs for use with CDK, to spin up
 ## Open points
 
 - [x] Fix dependency issues
+- [ ] Fix prettier to run on save
+- [ ] Deletion of data source sync after startup fails due to timeout after 3 seconds
 - [ ] Document constructs
 - [ ] Convert to a CDK library instead of CDK app
 - [ ] Update the README with all components and proper documentation of directory structure
