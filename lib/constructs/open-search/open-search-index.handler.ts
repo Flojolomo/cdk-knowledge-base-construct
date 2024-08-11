@@ -51,12 +51,12 @@ class Handler implements LambdaInterface {
     dimensions,
     vectorField,
   }: IndexConfiguration) {
-    try {
       const indexExists = await openSearchClient.indices.exists({
         index: indexName,
       });
-      if (indexExists) {
-        // throw new Error(`Index ${indexName} already exists`);
+      if (indexExists.body) {
+        logger.error(`Index ${indexName} already exists: ${JSON.stringify(indexExists)}`);
+        throw new Error(`Index ${indexName} already exists: ${JSON.stringify(indexExists)}`);
       }
 
       await openSearchClient.indices.create({
@@ -90,9 +90,12 @@ class Handler implements LambdaInterface {
           },
         },
       });
-    } catch (e) {
-      logger.error("Error creating index", { error: e });
-    }
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      if (!(await openSearchClient.indices.exists({ index: indexName })).body) {
+        throw new Error(`Index ${indexName} not created`);
+      }
+
   }
   private async deleteIndex({ indexName }: { indexName: string }) {
     try {

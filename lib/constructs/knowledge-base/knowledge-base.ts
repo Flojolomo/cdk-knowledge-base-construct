@@ -3,13 +3,13 @@ import * as bedrock from "aws-cdk-lib/aws-bedrock";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
+import { OpenSearchIndex } from "../open-search/open-search-index";
 import { ChunkingConfiguration, KnowledgeBaseDataSource } from "./data-source";
-import { IVectorIndex } from "./vector-index";
 
 interface KnowledgeBaseProps {
   dataSourceId?: string;
   embeddingModel: bedrock.FoundationModel;
-  vectorIndex: IVectorIndex;
+  vectorIndex: OpenSearchIndex;
   sourceBucket?: s3.Bucket;
 }
 
@@ -72,6 +72,7 @@ export class KnowledgeBase extends Construct {
     });
 
     grantee.applyBefore(this.knowledgeBase);
+    this.knowledgeBase.node.addDependency(props.vectorIndex)
 
     const dataSourceName = props.dataSourceId ?? "default";
     this.dataSource = new KnowledgeBaseDataSource(this, "data-source", {

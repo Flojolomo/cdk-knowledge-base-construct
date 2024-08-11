@@ -52,6 +52,7 @@ export class OpenSearchIndex extends Construct implements IVectorIndex {
           environment: {
             OPENSEARCH_DOMAIN: props.collection.attrCollectionEndpoint,
           },
+          timeout: cdk.Duration.minutes(5),
         },
       },
     );
@@ -61,6 +62,7 @@ export class OpenSearchIndex extends Construct implements IVectorIndex {
       logRetention: logs.RetentionDays.ONE_DAY,
     });
 
+    // Custom resource ignores delete event, if create event failed with an unhandled error.
     const customResource = new cdk.CustomResource(
       this,
       cdk.Names.uniqueId(this),
