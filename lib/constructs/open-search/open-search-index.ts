@@ -13,6 +13,8 @@ interface OpenSearchIndexProps {
   indexName: string;
   vectorDimension: number;
   collection: OpenSearchCollection;
+  logGroup?: logs.ILogGroup
+  logRetention?: logs.RetentionDays
 }
 
 /**
@@ -56,13 +58,15 @@ export class OpenSearchIndex extends Construct implements IVectorIndex, IDependa
             OPENSEARCH_DOMAIN: props.collection.attrCollectionEndpoint,
           },
           timeout: cdk.Duration.minutes(5),
+          logGroup: props.logGroup,
         },
       },
     );
 
     const provider = new cr.Provider(this, "create-index-provider", {
       onEventHandler: createIndexHandler,
-      logRetention: logs.RetentionDays.ONE_DAY,
+      logRetention: props.logRetention,
+      logGroup: props.logGroup,
     });
 
     // Custom resource ignores delete event, if create event failed with an unhandled error.

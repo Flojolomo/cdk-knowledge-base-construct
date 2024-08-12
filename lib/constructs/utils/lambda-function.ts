@@ -15,6 +15,8 @@ import { Construct } from "constructs";
 interface LambdaFunctionProps {
   functionProps: Partial<Omit<NodejsFunctionProps, "events">> & {
     entry: NodejsFunctionProps["entry"];
+    logRetention?: logs.RetentionDays;
+    logGroup?: logs.ILogGroup;
   };
   bucket?: s3.Bucket;
   topic?: sns.Topic;
@@ -27,7 +29,8 @@ export class LambdaFunction extends Construct {
     super(scope, id);
 
     this.function = new NodejsFunction(this, "lambda", {
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      logRetention: props.functionProps.logRetention,
+      logGroup: props.functionProps.logGroup,
       runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       environment: {

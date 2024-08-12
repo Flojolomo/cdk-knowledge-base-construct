@@ -37,6 +37,8 @@ export interface KnowledgeBaseDataSourceProps {
   description?: string;
   inclusionPrefixes?: string[];
   knowledgeBase: bedrock.CfnKnowledgeBase;
+  logGroup?: logs.ILogGroup
+  logRetention?: logs.RetentionDays
 }
 
 export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
@@ -46,7 +48,9 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
 
   public readonly bucket: s3.IBucket;
 
-  private knowledgeBase: bedrock.CfnKnowledgeBase;
+  private readonly knowledgeBase: bedrock.CfnKnowledgeBase;
+  private readonly logGroup?: logs.ILogGroup;
+  private readonly logRetention?: logs.RetentionDays;
 
   public constructor(
     scope: Construct,
@@ -74,6 +78,8 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
 
     this.knowledgeBase = props.knowledgeBase;
     this.bucket = props.bucket;
+    this.logGroup = props.logGroup;
+    this.logRetention = props.logRetention;
   }
 
   public syncAfterCreation(): void {
@@ -84,6 +90,8 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
         functionProps: {
           entry: path.join(__dirname, "start-ingestion-job/custom-resource.ts"),
           timeout: cdk.Duration.minutes(5),
+          logGroup: this.logGroup,
+          logRetention: this.logRetention,
         },
       }
     );
@@ -102,7 +110,8 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
       "sync-after-creation-provider",
       {
         onEventHandler: injectDataAfterCreationFunction,
-        logRetention: logs.RetentionDays.ONE_DAY,
+        logRetention: this.logRetention,
+        logGroup: this.logGroup,
       }
     );
 

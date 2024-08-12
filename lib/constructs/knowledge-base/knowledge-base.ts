@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as bedrock from "aws-cdk-lib/aws-bedrock";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { OpenSearchIndex } from "../open-search/open-search-index";
@@ -11,6 +12,7 @@ interface KnowledgeBaseProps {
   embeddingModel: bedrock.FoundationModel;
   vectorIndex: OpenSearchIndex;
   sourceBucket?: s3.Bucket;
+  logGroup?: logs.ILogGroup
 }
 
 export class KnowledgeBase extends Construct {
@@ -19,6 +21,8 @@ export class KnowledgeBase extends Construct {
   public readonly dataSource: KnowledgeBaseDataSource;
   public readonly dataSources: Array<KnowledgeBaseDataSource> = [];
 
+  private readonly logGroup?: logs.ILogGroup;
+  
   public constructor(scope: Construct, id: string, props: KnowledgeBaseProps) {
     super(scope, id);
 
@@ -73,12 +77,13 @@ export class KnowledgeBase extends Construct {
 
     grantee.applyBefore(this.knowledgeBase);
     this.knowledgeBase.node.addDependency(props.vectorIndex)
-    
+
     const dataSourceName = props.dataSourceId ?? "default";
     this.dataSource = new KnowledgeBaseDataSource(this, "data-source", {
       bucket: sourceBucket,
       knowledgeBase: this.knowledgeBase,
       name: dataSourceName,
+      logGroup: props.logGroup
     });
 
     this.dataSources.push(this.dataSource);
@@ -115,6 +120,7 @@ export class KnowledgeBase extends Construct {
       inclusionPrefixes,
       knowledgeBase: this.knowledgeBase,
       name: id,
+      logGroup: this.logGroup
     });
 
     this.dataSources.push(dataSource)
