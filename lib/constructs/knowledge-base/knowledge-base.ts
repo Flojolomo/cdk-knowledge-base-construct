@@ -73,7 +73,7 @@ export class KnowledgeBase extends Construct {
 
     grantee.applyBefore(this.knowledgeBase);
     this.knowledgeBase.node.addDependency(props.vectorIndex)
-
+    
     const dataSourceName = props.dataSourceId ?? "default";
     this.dataSource = new KnowledgeBaseDataSource(this, "data-source", {
       bucket: sourceBucket,

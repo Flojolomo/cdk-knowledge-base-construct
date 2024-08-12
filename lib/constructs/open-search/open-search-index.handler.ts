@@ -59,6 +59,7 @@ class Handler implements LambdaInterface {
         throw new Error(`Index ${indexName} already exists: ${JSON.stringify(indexExists)}`);
       }
 
+      logger.info(`Creating index ${indexName}`);
       await openSearchClient.indices.create({
         index: indexName,
         body: {
@@ -93,16 +94,23 @@ class Handler implements LambdaInterface {
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
       if (!(await openSearchClient.indices.exists({ index: indexName })).body) {
+        logger.error(`Index ${indexName} not created`);
         throw new Error(`Index ${indexName} not created`);
       }
 
+      logger.info(`Index ${indexName} created`);
   }
+
   private async deleteIndex({ indexName }: { indexName: string }) {
+    logger.info(`Deleting index ${indexName}`);
+
     try {
       await openSearchClient.indices.delete({ index: indexName });
     } catch (e) {
       logger.error("Error deleting index", { error: e });
     }
+
+    logger.info(`Index ${indexName} deleted`);
   }
 
   @logger.injectLambdaContext({ logEvent: true })

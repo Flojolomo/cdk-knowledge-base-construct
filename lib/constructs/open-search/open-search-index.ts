@@ -4,7 +4,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 
 import * as cr from "aws-cdk-lib/custom-resources";
-import { Construct } from "constructs";
+import { Construct, IDependable } from "constructs";
 import { IVectorIndex } from "../knowledge-base/vector-index";
 import { LambdaFunction } from "../utils/lambda-function";
 import { OpenSearchCollection } from "./open-search-collection";
@@ -21,12 +21,15 @@ interface OpenSearchIndexProps {
  * with the dimension specified in {@link OpenSearchIndexProps.vectorDimension}. The name of the index is specified in
  * {@link OpenSearchIndexProps.indexName}.
  */
-export class OpenSearchIndex extends Construct implements IVectorIndex {
+export class OpenSearchIndex extends Construct implements IVectorIndex, IDependable {
   public readonly metadataField: string = "METADATA";
   public readonly textField: string = "TEXT_CHUNK";
   public readonly vectorField: string;
   public readonly collection: OpenSearchCollection;
   public readonly indexName: string;
+
+
+  private readonly indexCreation: cdk.CustomResource;
 
 
   public constructor(
@@ -63,7 +66,7 @@ export class OpenSearchIndex extends Construct implements IVectorIndex {
     });
 
     // Custom resource ignores delete event, if create event failed with an unhandled error.
-    const customResource = new cdk.CustomResource(
+  this.indexCreation = new cdk.CustomResource(
       this,
       cdk.Names.uniqueId(this),
       {
@@ -80,8 +83,7 @@ export class OpenSearchIndex extends Construct implements IVectorIndex {
     );
 
     const grant = props.collection.grantReadWrite(createIndexHandler.role!);
-
-    customResource.node.addDependency(grant);
+    this.indexCreation.node.addDependency(grant);
   }
 
   public grantReadWrite(principal: iam.IPrincipal): iam.Grant {
