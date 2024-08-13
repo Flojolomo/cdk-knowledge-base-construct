@@ -12,23 +12,24 @@ interface KnowledgeBaseProps {
   embeddingModel: bedrock.FoundationModel;
   vectorIndex: OpenSearchIndex;
   sourceBucket?: s3.Bucket;
-  logGroup?: logs.ILogGroup
+  logGroup?: logs.ILogGroup;
+  serviceRole: iam.IRole;
 }
 
 export class KnowledgeBase extends Construct {
-  public readonly role: iam.Role;
+  public readonly serviceRole: iam.IRole;
   public readonly knowledgeBase: bedrock.CfnKnowledgeBase;
   public readonly dataSource: KnowledgeBaseDataSource;
   public readonly dataSources: Array<KnowledgeBaseDataSource> = [];
 
   private readonly logGroup?: logs.ILogGroup;
-  
+
   public constructor(scope: Construct, id: string, props: KnowledgeBaseProps) {
     super(scope, id);
 
-    this.role = new iam.Role(this, "knowledge-base-role", {
-      assumedBy: new iam.ServicePrincipal("bedrock.amazonaws.com"),
-    });
+    this.serviceRole = props.serviceRole;
+
+    this.node.addDependency(props.vectorIndex);
 
     const sourceBucket =
       props.sourceBucket ??
@@ -41,24 +42,24 @@ export class KnowledgeBase extends Construct {
       maxLength: 64,
     });
 
-    const grantee = props.vectorIndex.grantReadWrite(this.role);
+    const grantee = props.vectorIndex.grantReadWrite(props.serviceRole);
 
-    sourceBucket.grantReadWrite(this.role);
-    this.role.addToPolicy(
+    sourceBucket.grantReadWrite(props.serviceRole);
+    props.serviceRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ["bedrock:InvokeModel"],
         resources: [props.embeddingModel.modelArn],
-      }),
+      })
     );
 
     this.knowledgeBase = new bedrock.CfnKnowledgeBase(this, "knowledge-base", {
       name: knowledgeBaseName,
-      roleArn: this.role.roleArn,
+      roleArn: props.serviceRole.roleArn,
       storageConfiguration: {
         opensearchServerlessConfiguration: {
           collectionArn: props.vectorIndex.collection.collectionArn,
-          vectorIndexName: props.vectorIndex.indexName  ,
+          vectorIndexName: props.vectorIndex.indexName,
           fieldMapping: {
             vectorField: props.vectorIndex.vectorField,
             metadataField: props.vectorIndex.metadataField,
@@ -76,14 +77,14 @@ export class KnowledgeBase extends Construct {
     });
 
     grantee.applyBefore(this.knowledgeBase);
-    this.knowledgeBase.node.addDependency(props.vectorIndex)
+    this.knowledgeBase.node.addDependency(props.vectorIndex.indexProvider);
 
     const dataSourceName = props.dataSourceId ?? "default";
     this.dataSource = new KnowledgeBaseDataSource(this, "data-source", {
       bucket: sourceBucket,
       knowledgeBase: this.knowledgeBase,
       name: dataSourceName,
-      logGroup: props.logGroup
+      logGroup: props.logGroup,
     });
 
     this.dataSources.push(this.dataSource);
@@ -101,7 +102,7 @@ export class KnowledgeBase extends Construct {
       description?: string;
       chunkingConfiguration?: ChunkingConfiguration;
       inclusionPrefixes?: string[];
-    } = {},
+    } = {}
   ): KnowledgeBaseDataSource {
     // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_bedrock.CfnDataSource.html
 
@@ -112,7 +113,7 @@ export class KnowledgeBase extends Construct {
         removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
 
-    bucket.grantRead(this.role);
+    bucket.grantRead(this.serviceRole);
     const dataSource = new KnowledgeBaseDataSource(this, `data-source-${id}`, {
       bucket,
       chunkingConfiguration,
@@ -120,10 +121,10 @@ export class KnowledgeBase extends Construct {
       inclusionPrefixes,
       knowledgeBase: this.knowledgeBase,
       name: id,
-      logGroup: this.logGroup
+      logGroup: this.logGroup,
     });
 
-    this.dataSources.push(dataSource)
-    return dataSource
+    this.dataSources.push(dataSource);
+    return dataSource;
   }
 }

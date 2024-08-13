@@ -4,7 +4,6 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as kms from "aws-cdk-lib/aws-kms";
 import * as osServerless from "aws-cdk-lib/aws-opensearchserverless";
 import { Construct } from "constructs";
-import { OpenSearchDataAccessPolicy } from "./open-search-data-access-policy";
 
 interface OpenSearchCollectionProps {
   /**
@@ -65,10 +64,10 @@ interface OpenSearchCollectionProps {
  * or provide a list of VPC endpoints in {@link OpenSearchCollectionProps.vpcEndpoints}
  */
 export class OpenSearchCollection extends osServerless.CfnCollection {
-  private readonly dataAccessPolicy: OpenSearchDataAccessPolicy;
+  // private readonly dataAccessPolicy: OpenSearchDataAccessPolicy;
 
   public get collectionArn(): string {
-    return this.attrArn
+    return this.attrArn;
   }
 
   /**
@@ -79,7 +78,7 @@ export class OpenSearchCollection extends osServerless.CfnCollection {
   public constructor(
     scope: Construct,
     id: string,
-    props: OpenSearchCollectionProps,
+    props: OpenSearchCollectionProps
   ) {
     super(scope, id, {
       description: props.description,
@@ -89,13 +88,13 @@ export class OpenSearchCollection extends osServerless.CfnCollection {
       type: props.type ?? "VECTORSEARCH",
     });
 
-    this.dataAccessPolicy = new OpenSearchDataAccessPolicy(
-      this,
-      "data-access-policy",
-      {
-        collection: this,
-      },
-    );
+    // this.dataAccessPolicy = new OpenSearchDataAccessPolicy(
+    //   this,
+    //   "data-access-policy",
+    //   {
+    //     collection: this,
+    //   },
+    // );
 
     const encryptionPolicy = new osServerless.CfnSecurityPolicy(
       this,
@@ -113,7 +112,7 @@ export class OpenSearchCollection extends osServerless.CfnCollection {
           AWSOwnedKey: !props.kmsKey,
           KmsARN: props.kmsKey?.keyArn,
         }),
-      },
+      }
     );
 
     this.addDependency(encryptionPolicy);
@@ -136,7 +135,7 @@ export class OpenSearchCollection extends osServerless.CfnCollection {
               },
             ],
             SourceVPCEndpoints: props.vpcEndpoints?.map(
-              (vpcEndpoint) => vpcEndpoint.vpcEndpointId,
+              (vpcEndpoint) => vpcEndpoint.vpcEndpointId
             ),
           },
         ]),
@@ -144,24 +143,30 @@ export class OpenSearchCollection extends osServerless.CfnCollection {
     }
   }
 
+  // public grantReadWrite(principal: iam.IPrincipal): iam.Grant {
+  //   this.dataAccessPolicy.grantReadWrite(principal);
+  //   const grant = this.grantApiAccess(principal);
+  //   return grant;
+  // }
+
+  // public grantRead(principal: iam.IPrincipal): iam.Grant {
+  //   this.dataAccessPolicy.grantReadWrite(principal);
+  //   return this.grantApiAccess(principal);
+  // }
+
   public grantReadWrite(principal: iam.IPrincipal): iam.Grant {
-    this.dataAccessPolicy.grantReadWrite(principal);
-    const grant = this.grantApiAccess(principal);
-    return grant;
-  }
-
-  public grantRead(principal: iam.IPrincipal): iam.Grant {
-    this.dataAccessPolicy.grantReadWrite(principal);
-    return this.grantApiAccess(principal);
-  }
-
-  private grantApiAccess(principal: iam.IPrincipal): iam.Grant {
     return iam.Grant.addToPrincipal({
       grantee: principal,
       actions: ["aoss:APIAccessAll"],
-      resourceArns: [
-        "*"
-      ],
+      resourceArns: ["*"],
+    });
+  }
+
+  public grantApiAccess(principal: iam.IPrincipal): iam.Grant {
+    return iam.Grant.addToPrincipal({
+      grantee: principal,
+      actions: ["aoss:APIAccessAll"],
+      resourceArns: ["*"],
     });
   }
 }

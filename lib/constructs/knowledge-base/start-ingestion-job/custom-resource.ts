@@ -1,3 +1,4 @@
+import { Logger } from "@aws-lambda-powertools/logger";
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceResponse,
@@ -8,6 +9,8 @@ import {
   handler as startIngestionJobHandler,
 } from "./start-sync";
 
+const logger = new Logger({ serviceName: "StartIngestionJob" });
+
 export const handler = async (
   event: CloudFormationCustomResourceEvent,
   context: Context
@@ -16,7 +19,11 @@ export const handler = async (
     event.ResourceProperties as unknown as StartIngestionJobEvent;
 
   if (event.RequestType === "Create") {
+    try{
     await startIngestionJobHandler(ResourceProperties, context);
+    } catch (error) {
+      logger.error("Error starting ingestion job", { error });
+    }
   }
 
   return {
