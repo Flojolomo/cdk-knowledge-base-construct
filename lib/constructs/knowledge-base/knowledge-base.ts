@@ -14,6 +14,7 @@ interface KnowledgeBaseProps {
   sourceBucket?: s3.Bucket;
   logGroup?: logs.ILogGroup;
   serviceRole: iam.IRole;
+  chunkingConfiguration?: ChunkingConfiguration;
 }
 
 export class KnowledgeBase extends Construct {
@@ -85,6 +86,7 @@ export class KnowledgeBase extends Construct {
       knowledgeBase: this.knowledgeBase,
       name: dataSourceName,
       logGroup: props.logGroup,
+      chunkingConfiguration: props.chunkingConfiguration,
     });
 
     this.dataSources.push(this.dataSource);
