@@ -37,8 +37,8 @@ export interface KnowledgeBaseDataSourceProps {
   description?: string;
   inclusionPrefixes?: string[];
   knowledgeBase: bedrock.CfnKnowledgeBase;
-  logGroup?: logs.ILogGroup
-  logRetention?: logs.RetentionDays
+  logGroup?: logs.ILogGroup;
+  logRetention?: logs.RetentionDays;
 }
 
 export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
@@ -71,7 +71,11 @@ export class KnowledgeBaseDataSource extends bedrock.CfnDataSource {
       },
       vectorIngestionConfiguration: {
         chunkingConfiguration: props.chunkingConfiguration ?? {
-          chunkingStrategy: "NONE",
+          chunkingStrategy: "FIXED_SIZE",
+          fixedSizeChunkingConfiguration: {
+            maxTokens: 512,
+            overlapPercentage: 10,
+          },
         },
       },
     });
